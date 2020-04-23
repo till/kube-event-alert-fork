@@ -1,4 +1,4 @@
-module github.com/ronenlib/kube-failure-alert
+module github.com/ronenlib/kube-event-alert
 
 go 1.13
 
@@ -7,7 +7,6 @@ require (
 	k8s.io/apimachinery v0.18.0
 	k8s.io/client-go v0.18.0
 	k8s.io/klog v1.0.0
-	k8s.io/kubernetes v1.18.0 // indirect
 )
 
 replace (
