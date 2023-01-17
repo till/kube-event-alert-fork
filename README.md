@@ -4,7 +4,7 @@ Kube event alert is a k8s controller that watches for events in the cluster and 
 
 ## Usage
 
-```
+```sh
 go run main.go [OPTIONS]
 
 OPTIONS:
@@ -21,6 +21,7 @@ OPTIONS:
 ## Installation
 
 ### In Cluster
+
 Copy config map yaml file, set the webhook url `webhook.url`
 
 ```bash
@@ -29,7 +30,7 @@ cp configmap.example.yaml configmap.yaml
 
 Apply config map, RBAC authorization and the controller pod to your k8s cluster
 
-```
+```sh
 kubectl apply -f role.yaml
 kubectl apply -f configmap.yaml
 kubectl apply -f kube-event-alert.yaml
@@ -38,9 +39,10 @@ kubectl apply -f kube-event-alert.yaml
 ### Out of Cluster
 
 #### Executable
+
 Compile an executable file
 
-```
+```sh
 go mod download
 go build -o kube-event-alert .
 ```
@@ -48,12 +50,14 @@ go build -o kube-event-alert .
 Run the executable according to the [usage](#usage) instructions above and satisfy `webhookURL` argument and either the `kubeconfig` or `masterUrl` arguments
 
 #### Docker
-```
+
+```sh
 docker build -t <name>:<tag> .
 docker run -d -e WEBHOOK_URL=<webhook-url> -e KUBE_MASTER_URL=<kube-master-url> <name>:<tag>
 ```
 
 ## Notification
+
 The event notification is sent to the webhook url via HTTP `POST` method with the following payload
 
 ```json
