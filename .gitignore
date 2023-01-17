@@ -4,4 +4,6 @@ __debug_bin
 *.test
 *.out
 
+kube-event-alert
+k8s/.env
 configmap.yaml
