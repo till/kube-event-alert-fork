@@ -1,24 +1,21 @@
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: kube-events-alert-cluster-role
-  namespace: default
+  name: kube-event-alert-cluster-role
 rules:
 - apiGroups: [""]
   resources: ["events"]
   verbs: ["get", "watch", "list"]
-
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: kube-events-alert-role-cluster-biding
-  namespace: default
+  name: kube-event-alert-role-cluster-binding
 subjects:
   - kind: ServiceAccount
     name: default
-    namespace: default
 roleRef:
   kind: ClusterRole
-  name: kube-events-alert-cluster-role
+  name: kube-event-alert-cluster-role
   apiGroup: rbac.authorization.k8s.io

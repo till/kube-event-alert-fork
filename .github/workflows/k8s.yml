@@ -1,0 +1,21 @@
+---
+name: k8s
+
+on:
+  pull_request
+
+jobs:
+  kustomize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: yokawasa/action-setup-kube-tools@v0.9.2
+        with:
+          setup-tools: |
+            kustomize
+            kubeconform
+      - run: |
+          cd ./k8s \
+          && kustomize build -o ./../kube-event-alert-deployment.yml .
+      - run: cat kube-event-alert-deployment.yml
+      - run: kubeconform -summary ./kube-event-alert-deployment.yml

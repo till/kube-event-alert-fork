@@ -22,18 +22,11 @@ OPTIONS:
 
 ### In Cluster
 
-Copy config map yaml file, set the webhook url `webhook.url`
+Follow the instructions in [k8s](k8s) to configure `webhook.url` and deploy the manifest:
 
 ```bash
-cp configmap.example.yaml configmap.yaml
-```
-
-Apply config map, RBAC authorization and the controller pod to your k8s cluster
-
-```sh
-kubectl apply -f role.yaml
-kubectl apply -f configmap.yaml
-kubectl apply -f kube-event-alert.yaml
+kustomize -o .deploymnet.yml ./k8s
+kubectl apply -f deployment.yml
 ```
 
 ### Out of Cluster
@@ -43,7 +36,6 @@ kubectl apply -f kube-event-alert.yaml
 Compile an executable file
 
 ```sh
-go mod download
 go build -o kube-event-alert .
 ```
 
@@ -58,7 +50,7 @@ docker run -d -e WEBHOOK_URL=<webhook-url> -e KUBE_MASTER_URL=<kube-master-url> 
 
 ## Notification
 
-The event notification is sent to the webhook url via HTTP `POST` method with the following payload
+The event notification is sent to the webhook url via HTTP `POST` method with the following payload:
 
 ```json
 {
@@ -66,4 +58,4 @@ The event notification is sent to the webhook url via HTTP `POST` method with th
 }
 ```
 
-The payload support slack incoming webhook integration
+The payload supports the slack incoming webhook integration.
