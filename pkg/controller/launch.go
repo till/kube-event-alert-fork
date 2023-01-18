@@ -15,7 +15,7 @@ func Launch(clientset kubernetes.Interface, notifier notifier.WebhookNotifier, s
 
 	eventHandler := handler.NewEventHandler(notifier)
 
-	c := newController("event", clientset, informer, eventHandler)
+	c := NewController("event", clientset, informer, eventHandler)
 
 	klog.Info("start informers")
 	factory.Start(stopCh)

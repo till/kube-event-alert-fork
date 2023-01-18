@@ -15,5 +15,8 @@ docker:
 e2e: docker
 	docker run --rm $(IMAGE)
 
+test:
+	go test -count=1 --race -v ./...
+
 $(exec):
 	go build -o $(exec) .
