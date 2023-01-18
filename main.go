@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"os"
 	"os/signal"
 	"syscall"
@@ -12,13 +13,16 @@ import (
 	"k8s.io/klog"
 )
 
+//go:embed resources/*
+var tplFS embed.FS
+
 func main() {
 	klog.InitFlags(nil)
 
 	config := config.Load()
 
 	clientset := util.GetKubeClient(config.MasterURL, config.Kubeconfig)
-	notifier := notifier.NewWebhookNotifier(config.WebhookURL)
+	notifier := notifier.NewWebhookNotifier(config.WebhookURL, tplFS)
 
 	stopCh := make(chan struct{})
 	setInterrupt(stopCh)

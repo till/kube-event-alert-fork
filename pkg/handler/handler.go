@@ -33,6 +33,7 @@ func (h *EventHandler) Handle(obj interface{}) error {
 		return fmt.Errorf("handler expects event object, got %t", obj)
 	}
 
+	// filter
 	if event.Type == corev1.EventTypeNormal {
 		return nil
 	}
@@ -47,6 +48,8 @@ func (h *EventHandler) getPayload(event *corev1.Event) notifier.Payload {
 		Kind:      event.InvolvedObject.Kind,
 		Namespace: event.InvolvedObject.Namespace,
 		Name:      event.InvolvedObject.Name,
+		Reason:    event.Reason,
+		Message:   event.Message,
 		Error:     fmt.Sprintf("%s %s", event.Reason, event.Message),
 	}
 }

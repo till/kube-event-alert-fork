@@ -5,6 +5,8 @@ type Payload struct {
 	Kind      string
 	Namespace string
 	Name      string
+	Reason    string
+	Message   string
 	Error     string
 }
 
