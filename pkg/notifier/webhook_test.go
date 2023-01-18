@@ -1,4 +1,4 @@
-package notifier
+package notifier_test
 
 import (
 	"encoding/json"
@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/ronenlib/kube-event-alert/pkg/notifier"
 )
 
 type webhookRequest struct {
@@ -37,13 +39,13 @@ func fakeBadMessageHandler(w http.ResponseWriter, req *http.Request) {
 func TestNotify(t *testing.T) {
 	cases := []struct {
 		handler     http.Handler
-		payload     Payload
+		payload     notifier.Payload
 		expectError bool
 		name        string
 	}{
 		{
 			handler: http.HandlerFunc(fakeOkHandler),
-			payload: Payload{
+			payload: notifier.Payload{
 				Kind:      "kind",
 				Namespace: "namespace",
 				Name:      "name",
@@ -54,7 +56,7 @@ func TestNotify(t *testing.T) {
 		},
 		{
 			handler:     http.HandlerFunc(fakeBadMessageHandler),
-			payload:     Payload{},
+			payload:     notifier.Payload{},
 			expectError: true,
 			name:        "NotifyFailure",
 		},
@@ -65,7 +67,7 @@ func TestNotify(t *testing.T) {
 			server := httptest.NewServer(tc.handler)
 			defer server.Close()
 
-			sn := NewWebhookNotifier(server.URL)
+			sn := notifier.NewWebhookNotifier(server.URL)
 
 			body = webhookRequest{} // reset variable
 			err := sn.Notify(tc.payload)

@@ -25,7 +25,7 @@ type Controller struct {
 	handler       handler.Handler
 }
 
-func newController(name string, clientset kubernetes.Interface, informer informers.EventInformer, handler handler.Handler) *Controller {
+func NewController(name string, clientset kubernetes.Interface, informer informers.EventInformer, handler handler.Handler) *Controller {
 	defaultQueue := workqueue.DefaultControllerRateLimiter()
 	queueName := fmt.Sprintf("kube-event-alert-%s", name)
 	queue := workqueue.NewNamedRateLimitingQueue(defaultQueue, queueName)
@@ -65,14 +65,22 @@ func (c *Controller) runWorker() {
 	var continueProcess bool
 	var err error
 
-	for continueProcess = true; continueProcess; continueProcess, err = c.processNextWorkItem() {
+	for continueProcess = true; continueProcess; continueProcess, err = c.ProcessNextWorkItem() {
 		if err != nil {
 			runtime.HandleError(err)
 		}
 	}
 }
 
-func (c *Controller) processNextWorkItem() (bool, error) {
+func (c *Controller) GetInformer() cache.SharedIndexInformer {
+	return c.informer
+}
+
+func (c *Controller) GetWorkQueue() workqueue.RateLimitingInterface {
+	return c.workqueue
+}
+
+func (c *Controller) ProcessNextWorkItem() (bool, error) {
 	obj, shutdown := c.workqueue.Get()
 
 	if shutdown {
@@ -88,7 +96,7 @@ func (c *Controller) processNextWorkItem() (bool, error) {
 		return true, fmt.Errorf("unknown type received by workqueue %#v", obj)
 	}
 
-	err := c.handleKey(key)
+	err := c.HandleKey(key)
 
 	if err == nil {
 		klog.Infof("Successfully handeled %s", key)
@@ -102,7 +110,7 @@ func (c *Controller) processNextWorkItem() (bool, error) {
 	return true, err
 }
 
-func (c *Controller) handleKey(key string) error {
+func (c *Controller) HandleKey(key string) error {
 	namespace, name, err := cache.SplitMetaNamespaceKey(key)
 
 	if err != nil {

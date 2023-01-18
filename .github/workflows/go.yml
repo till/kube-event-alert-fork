@@ -13,59 +13,48 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-    - uses: actions/checkout@v2
-    - name: Format
-      uses: grandcolline/golang-github-actions@v1.1.0
+    - uses: actions/setup-go@v3
       with:
-        run: fmt
-        token: ${{ secrets.GITHUB_TOKEN }}
+        go-version: 1.19
+
+    - uses: actions/checkout@v3
+
+    - uses: golangci/golangci-lint-action@v3
+      if: ${{ !env.ACT }}
+      with:
+        args: --timeout=3m --issues-exit-code=0 ./...
+
+    - uses: golangci/golangci-lint-action@v3
+      if: ${{ !env.ACT }}
+      with:
+        skip-cache: true
+        args: --timeout=3m --issues-exit-code=0 ./...
 
   test:
     name: Test
     runs-on: ubuntu-latest
     steps:
 
-    - name: Set up Go 1.13
-      uses: actions/setup-go@v1
+    - uses: actions/setup-go@v3
       with:
-        go-version: 1.13
-      id: go
+        go-version: 1.19
 
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
-    - name: Get dependencies
-      run: |
-        go get -v -t -d ./...
-        if [ -f Gopkg.toml ]; then
-            curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-            dep ensure
-        fi
-
-    - name: Test
-      run: go test ./...
+    - run: go test ./...
 
   build:
+    needs:
+      - lint
+      - test
     name: Build
     runs-on: ubuntu-latest
     steps:
 
-    - name: Set up Go 1.13
-      uses: actions/setup-go@v1
+    - uses: actions/setup-go@v3
       with:
-        go-version: 1.13
-      id: go
+        go-version: 1.19
 
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
-    - name: Get dependencies
-      run: |
-        go get -v -t -d ./...
-        if [ -f Gopkg.toml ]; then
-            curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-            dep ensure
-        fi
-
-    - name: Build
-      run: go build -v .
+    - run: go build -o kube-event-alert -v .

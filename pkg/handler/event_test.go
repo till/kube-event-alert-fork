@@ -1,10 +1,11 @@
-package handler
+package handler_test
 
 import (
 	"errors"
 	"reflect"
 	"testing"
 
+	"github.com/ronenlib/kube-event-alert/pkg/handler"
 	"github.com/ronenlib/kube-event-alert/pkg/notifier"
 	corev1 "k8s.io/api/core/v1"
 )
@@ -95,7 +96,7 @@ func TestHandle(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			h := NewEventHandler(tc.notifier)
+			h := handler.NewEventHandler(tc.notifier)
 			err := h.Handle(tc.arg)
 			receivedErr := err != nil
 

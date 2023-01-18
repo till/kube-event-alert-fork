@@ -1,10 +1,11 @@
-package controller
+package controller_test
 
 import (
 	"errors"
 	"fmt"
 	"testing"
 
+	"github.com/ronenlib/kube-event-alert/pkg/controller"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/informers"
@@ -39,7 +40,7 @@ func newEvent(name, namespace string) *corev1.Event {
 }
 
 type fixture struct {
-	controller      *Controller
+	controller      *controller.Controller
 	handler         *mockHandler
 	informerFactory informers.SharedInformerFactory
 	stopCh          chan struct{}
@@ -56,13 +57,13 @@ func newFixture(handler mockHandler, events ...*corev1.Event) *fixture {
 	f.informerFactory = factory
 
 	informer := f.informerFactory.Core().V1().Events()
-	f.controller = newController("event-test", client, informer, &handler)
+	f.controller = controller.NewController("event-test", client, informer, &handler)
 
 	f.informerFactory.Start(f.stopCh)
 	f.informerFactory.WaitForCacheSync(f.stopCh)
 
 	for _, e := range events {
-		_ = f.controller.informer.GetIndexer().Add(e)
+		_ = f.controller.GetInformer().GetIndexer().Add(e)
 	}
 
 	return f
@@ -112,8 +113,8 @@ func TestControllerProcessItem(t *testing.T) {
 		defer f.stop()
 
 		t.Run(tc.name, func(t *testing.T) {
-			f.controller.workqueue.Add(tc.key)
-			result, err := f.controller.processNextWorkItem()
+			f.controller.GetWorkQueue().Add(tc.key)
+			result, err := f.controller.ProcessNextWorkItem()
 			receivedErr := err != nil
 
 			if result != tc.expectedResult {
@@ -170,7 +171,7 @@ func TestControllerHandelKey(t *testing.T) {
 		defer f.stop()
 
 		t.Run(tc.name, func(t *testing.T) {
-			err := f.controller.handleKey(tc.key)
+			err := f.controller.HandleKey(tc.key)
 			receivedErr := err != nil
 
 			if receivedErr != tc.expectError {
