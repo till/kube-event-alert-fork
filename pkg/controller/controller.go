@@ -98,14 +98,14 @@ func (c *Controller) ProcessNextWorkItem() (bool, error) {
 
 	err := c.HandleKey(key)
 
-	if err == nil {
-		klog.Infof("Successfully handeled %s", key)
-	} else {
+	if err != nil {
 		klog.Infof("Failed to handel %s, sending back to queue", key)
+		klog.Errorf("Error occurred: %s", err)
 		c.workqueue.AddRateLimited(obj)
 		return true, err
 	}
 
+	klog.Infof("Successfully handeled %s", key)
 	c.workqueue.Forget(obj)
 	return true, err
 }

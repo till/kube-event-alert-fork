@@ -2,10 +2,12 @@ package notifier
 
 import (
 	"bytes"
+	"embed"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"text/template"
 )
 
 const contentType = "application/json"
@@ -13,12 +15,14 @@ const contentType = "application/json"
 // WebhookNotifier sends notifications to webhook
 type WebhookNotifier struct {
 	webhookURL string
+	tplFS      embed.FS
 }
 
 // NewWebhookNotifier creates new webhook notifier
-func NewWebhookNotifier(webhookURL string) WebhookNotifier {
+func NewWebhookNotifier(webhookURL string, tplFs embed.FS) WebhookNotifier {
 	return WebhookNotifier{
 		webhookURL: webhookURL,
+		tplFS:      tplFs,
 	}
 }
 
@@ -45,17 +49,25 @@ func (sn WebhookNotifier) Notify(payload Payload) error {
 }
 
 func (sn WebhookNotifier) toReader(payload Payload) (io.Reader, error) {
-	text := fmt.Sprintf("%s %s/%s - %s", payload.Kind, payload.Namespace, payload.Name, payload.Error)
-
-	var body = map[string]string{
-		"text": text,
-	}
-
-	rawBody, err := json.Marshal(body)
-
+	tmpl, err := template.ParseFS(sn.tplFS, "resources/notifier.tpl")
 	if err != nil {
 		return nil, err
 	}
 
-	return bytes.NewBuffer(rawBody), nil
+	var text bytes.Buffer
+	err = tmpl.Execute(&text, payload)
+	if err != nil {
+		return nil, err
+	}
+
+	var rawBody bytes.Buffer
+	err = json.NewEncoder(&rawBody).Encode(map[string]string{
+		"text":     text.String(),
+		"username": "kube-event-alert",
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes.NewReader(rawBody.Bytes()), nil
 }

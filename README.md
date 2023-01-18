@@ -58,4 +58,4 @@ The event notification is sent to the webhook url via HTTP `POST` method with th
 }
 ```
 
-The payload supports the slack incoming webhook integration.
+The payload supports the slack incoming webhook integration. You can customize the text by editing `resources/notifier.tpl` and rebuilding `kube-event-alert`.

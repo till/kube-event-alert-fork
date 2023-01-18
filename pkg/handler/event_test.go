@@ -49,6 +49,8 @@ func getExpectedPayload() notifier.Payload {
 		Kind:      "kind",
 		Namespace: "namespace",
 		Name:      "name",
+		Reason:    "reason",
+		Message:   "message",
 		Error:     "reason message",
 	}
 }

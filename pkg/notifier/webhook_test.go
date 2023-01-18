@@ -1,14 +1,19 @@
 package notifier_test
 
 import (
+	"embed"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/ronenlib/kube-event-alert/pkg/notifier"
 )
+
+//go:embed resources
+var tplTestFs embed.FS
 
 type webhookRequest struct {
 	Text string `json:"text"`
@@ -38,10 +43,11 @@ func fakeBadMessageHandler(w http.ResponseWriter, req *http.Request) {
 
 func TestNotify(t *testing.T) {
 	cases := []struct {
-		handler     http.Handler
-		payload     notifier.Payload
-		expectError bool
-		name        string
+		handler         http.Handler
+		payload         notifier.Payload
+		expectedMessage string
+		expectError     bool
+		name            string
 	}{
 		{
 			handler: http.HandlerFunc(fakeOkHandler),
@@ -51,14 +57,16 @@ func TestNotify(t *testing.T) {
 				Name:      "name",
 				Error:     "error",
 			},
-			expectError: false,
-			name:        "NotifySuccessful",
+			expectedMessage: "name, kind: error",
+			expectError:     false,
+			name:            "NotifySuccessful",
 		},
 		{
-			handler:     http.HandlerFunc(fakeBadMessageHandler),
-			payload:     notifier.Payload{},
-			expectError: true,
-			name:        "NotifyFailure",
+			handler:         http.HandlerFunc(fakeBadMessageHandler),
+			payload:         notifier.Payload{},
+			expectedMessage: "",
+			expectError:     true,
+			name:            "NotifyFailure",
 		},
 	}
 
@@ -67,20 +75,21 @@ func TestNotify(t *testing.T) {
 			server := httptest.NewServer(tc.handler)
 			defer server.Close()
 
-			sn := notifier.NewWebhookNotifier(server.URL)
+			sn := notifier.NewWebhookNotifier(server.URL, tplTestFs)
 
 			body = webhookRequest{} // reset variable
 			err := sn.Notify(tc.payload)
-			receivedErr := err != nil
 
-			text := fmt.Sprintf("%s %s/%s - %s", tc.payload.Kind, tc.payload.Namespace, tc.payload.Name, tc.payload.Error)
-
-			if text != body.Text {
-				t.Errorf("Notifier sent the wrong message")
-			}
-
-			if receivedErr != tc.expectError {
-				t.Errorf("Expected error to be %v but received error was %v", tc.expectError, receivedErr)
+			if tc.expectError {
+				receivedErr := err != nil
+				if err == nil {
+					t.Errorf("Expected error to be %v but received error was %v", tc.expectError, receivedErr)
+				}
+			} else {
+				// strip \n
+				if tc.expectedMessage != strings.TrimSpace(body.Text) {
+					t.Errorf("Notifier sent the wrong message: %s (expected: %s)", body.Text, tc.expectedMessage)
+				}
 			}
 		})
 	}
