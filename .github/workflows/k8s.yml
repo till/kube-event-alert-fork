@@ -14,8 +14,11 @@ jobs:
           setup-tools: |
             kustomize
             kubeconform
-      - run: |
-          cd ./k8s \
-          && kustomize build -o ./../kube-event-alert-deployment.yml .
+
+      - name: create fake .env file
+        run: echo "webhook.url=https://example.org/webhook/123" > .env
+        working-directory: k8s
+      - run: kustomize build -o ./../kube-event-alert-deployment.yml .
+        working-directory: k8s
       - run: cat kube-event-alert-deployment.yml
       - run: kubeconform -summary ./kube-event-alert-deployment.yml
