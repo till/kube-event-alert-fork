@@ -5,6 +5,12 @@ on:
   pull_request
 
 jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: make docker IMAGE=kube-event-alert:dev
+
   kustomize:
     runs-on: ubuntu-latest
     steps:

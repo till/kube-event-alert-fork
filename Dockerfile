@@ -3,6 +3,7 @@ FROM golang:1.19-alpine as build
 WORKDIR "/build/kube-event-alert"
 
 COPY config config
+COPY resources resources
 COPY pkg pkg
 COPY go.mod go.mod
 COPY go.sum go.sum
